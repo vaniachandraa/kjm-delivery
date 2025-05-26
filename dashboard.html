@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>KJM Delivery Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <h1>KJM Delivery Dashboard</h1>
+    <div class="top-controls">
+      <span id="motivasi">“Gudang rapi, pengiriman pasti.”</span>
+      <img src="icons/calendar.png" id="calendarIcon" title="Filter Tanggal">
+      <img src="icons/settings.png" id="settingsIcon" title="Pengaturan">
+      <button class="logout" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <section class="calendar-popup" id="calendarPopup" style="display:none;">
+    <label>Dari: <input type="date" id="startDate"></label>
+    <label>Sampai: <input type="date" id="endDate"></label>
+    <button onclick="filterByDate()">Terapkan</button>
+  </section>
+
+  <table id="invoiceTable">
+    <thead>
+      <tr>
+        <th onclick="sortTable(0)">Tanggal</th>
+        <th onclick="sortTable(1)">Invoice</th>
+        <th onclick="sortTable(2)">Toko</th>
+        <th onclick="sortTable(3)">Status</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <!-- Data dari Supabase akan tampil di sini -->
+    </tbody>
+  </table>
+
+  <img src="icons/scan.png" id="scanButton" onclick="startScan()" title="Scan Barcode" />
+  <script src="js/script.js"></script>
+</body>
+</html>

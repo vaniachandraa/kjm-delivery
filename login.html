@@ -1,0 +1,31 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login KJM Delivery</title>
+</head>
+<body>
+  <h2>Login</h2>
+  <form onsubmit="login(event)">
+    <input type="email" id="email" placeholder="Email" required><br>
+    <input type="password" id="password" placeholder="Password" required><br>
+    <button type="submit">Login</button>
+  </form>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+  const supabase = supabase.createClient(
+    "https://sceyxitbusvqgiwxycec.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  );
+  async function login(e) {
+    e.preventDefault();
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return alert("Gagal login");
+    window.location.href = "dashboard.html";
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Supervisor Dashboard - KJM</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Inter', sans-serif; padding: 20px; background: #f4f4f4; }
+    h2 { margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; margin-top: 20px; }
+    th, td { padding: 10px; border-bottom: 1px solid #ddd; font-size: 14px; text-align: left; }
+    th { background: #f0f0f0; }
+    tr:hover { background: #f9f9f9; }
+    .status-siap { background: #d9fdd3; }
+    .status-dikirim { background: #cce5ff; }
+    .status-diterima { background: #e2ffe2; }
+  </style>
+</head>
+<body>
+  <h2>Supervisor Dashboard</h2>
+  <table id="supervisorTable">
+    <thead>
+      <tr>
+        <th>Tanggal</th>
+        <th>Invoice</th>
+        <th>Toko</th>
+        <th>Status</th>
+        <th>Koli</th>
+        <th>Staf</th>
+        <th>Dikirim</th>
+        <th>Diterima</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+const supabase = supabase.createClient(
+  "https://sceyxitbusvqgiwxycec.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+);
+async function loadData() {
+  const { data } = await supabase.from("invoices").select("*").order("date", { ascending: false });
+  const tbody = document.getElementById("tableBody");
+  tbody.innerHTML = "";
+  for (const inv of data) {
+    const logs = await supabase.from("scan_logs").select("*").eq("invoice_no", inv.invoice_no);
+    const kirim = logs.data?.find(l => l.status === "Loading");
+    const terima = logs.data?.find(l => l.status === "Tiba di Toko");
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${new Date(inv.date).toLocaleDateString()}</td>
+      <td>${inv.invoice_no}</td>
+      <td>${inv.store_name}</td>
+      <td>${inv.status}</td>
+      <td>${inv.koli || "-"}</td>
+      <td>${inv.staff || "-"}</td>
+      <td>${kirim?.timestamp ? new Date(kirim.timestamp).toLocaleTimeString() : "-"}</td>
+      <td>${terima?.timestamp ? new Date(terima.timestamp).toLocaleTimeString() : "-"}</td>`;
+    tbody.appendChild(row);
+  }
+}
+loadData();
+</script>
+</body>
+</html>

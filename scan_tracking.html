@@ -1,0 +1,33 @@
+
+<!DOCTYPE html>
+<html>
+<head><title>Scan Pengiriman & Penerimaan</title></head>
+<body>
+<h3>Scan Nota</h3>
+<button onclick="startScan('loading')">Scan - Kirim ke Toko</button>
+<button onclick="startScan('diterima')">Scan - Diterima di Toko</button>
+<video id="preview" width="300"></video>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+const supabase = supabase.createClient(
+  "https://sceyxitbusvqgiwxycec.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+);
+function startScan(mode) {
+  const qr = new Html5Qrcode("preview");
+  qr.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, async text => {
+    const status = mode === "loading" ? "Dalam Pengiriman" : "Sudah Diterima di Toko";
+    await supabase.from("invoices").update({ status }).eq("invoice_no", text);
+    await supabase.from("scan_logs").insert({
+      invoice_no: text,
+      status: mode === "loading" ? "Loading" : "Tiba di Toko",
+      scanned_by: "gudang/driver"
+    });
+    alert("Status diperbarui untuk " + text);
+    qr.stop();
+  });
+}
+</script>
+</body>
+</html>

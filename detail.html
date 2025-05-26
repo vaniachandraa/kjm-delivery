@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Detail Invoice</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <h2>Detail Invoice</h2>
+  <div id="invoiceDetail"></div>
+  <label>Jumlah Koli:</label>
+  <input id="koliInput" type="number"><br>
+  <label>Nama Staf Gudang:</label>
+  <input id="staffInput" type="text"><br>
+  <button onclick="prosesPacking()">Proses & Simpan</button>
+  <button onclick="cetakStiker()">Cetak Stiker</button>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+  const supabase = supabase.createClient(
+    "https://sceyxitbusvqgiwxycec.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  );
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const invoice = urlParams.get("invoice");
+
+  async function loadDetail() {
+    const { data } = await supabase.from("invoice_items").select("*").eq("invoice_no", invoice);
+    document.getElementById("invoiceDetail").innerHTML = data.map(d => `<p>${d.item_name} - Qty: ${d.qty}</p>`).join("");
+  }
+
+  async function prosesPacking() {
+    const koli = document.getElementById("koliInput").value;
+    const staff = document.getElementById("staffInput").value;
+    await supabase.from("invoices").update({ koli: koli, staff: staff, status: "Siap Dikirim" }).eq("invoice_no", invoice);
+    alert("Data disimpan.");
+  }
+
+  function cetakStiker() {
+    alert("Cetak stiker untuk " + invoice);
+  }
+
+  loadDetail();
+</script>
+</body>
+</html>

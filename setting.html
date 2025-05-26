@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pengaturan - KJM Delivery</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Inter', sans-serif; padding: 20px; background: #f4f4f4; }
+    h2 { margin-top: 20px; }
+    section { background: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; }
+    label { display: block; margin: 10px 0 5px; }
+    input, select, button, textarea {
+      padding: 8px; margin-bottom: 10px; width: 100%; max-width: 400px;
+    }
+    .btn { background: #ffe580; border: none; cursor: pointer; }
+    ul { list-style: none; padding: 0; }
+    li { margin-bottom: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Pengaturan Sistem KJM Delivery</h1>
+
+  <section>
+    <h2>1. Manajemen Akun</h2>
+    <label>Email</label>
+    <input type="email" id="emailUser">
+    <label>Role</label>
+    <select id="roleUser">
+      <option value="admin">Admin</option>
+      <option value="gudang">Gudang</option>
+      <option value="kepala_gudang">Kepala Gudang</option>
+      <option value="driver">Driver</option>
+      <option value="supervisor">Supervisor</option>
+    </select>
+    <button class="btn" onclick="addUser()">Tambah User</button>
+    <ul id="userList"></ul>
+  </section>
+
+  <section>
+    <h2>2. Kalimat Penyemangat</h2>
+    <label>Tambah Kalimat Baru</label>
+    <textarea id="motivasiInput" rows="2"></textarea>
+    <button class="btn" onclick="addMotivasi()">Tambah Kalimat</button>
+    <ul id="motivasiList"></ul>
+  </section>
+
+  <section>
+    <h2>3. Pengaturan Label Stiker</h2>
+    <label>Ukuran Stiker (cm)</label>
+    <input type="text" id="ukuranStiker">
+    <label>Tampilkan Koli / Item?</label>
+    <select id="opsiTampil">
+      <option value="ringkas">Ringkas</option>
+      <option value="lengkap">Lengkap</option>
+    </select>
+    <button class="btn" onclick="simpanStiker()">Simpan Pengaturan Stiker</button>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    const supabase = supabase.createClient(
+      "https://sceyxitbusvqgiwxycec.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    );
+
+    async function addUser() {
+      const email = document.getElementById("emailUser").value;
+      const role = document.getElementById("roleUser").value;
+      if (!email) return alert("Isi email terlebih dahulu");
+      await supabase.from("kjm_users").insert({ email, role });
+      alert("User ditambahkan!");
+      loadUsers();
+    }
+
+    async function loadUsers() {
+      const { data } = await supabase.from("kjm_users").select("*");
+      const list = document.getElementById("userList");
+      list.innerHTML = "";
+      data.forEach(u => {
+        const li = document.createElement("li");
+        li.textContent = u.email + " (" + u.role + ")";
+        li.onclick = async () => {
+          if (confirm("Hapus user ini?")) {
+            await supabase.from("kjm_users").delete().eq("id", u.id);
+            loadUsers();
+          }
+        };
+        list.appendChild(li);
+      });
+    }
+
+    async function addMotivasi() {
+      const text = document.getElementById("motivasiInput").value;
+      if (!text) return;
+      await supabase.from("motivations").insert({ text });
+      alert("Kalimat ditambahkan!");
+      loadMotivasi();
+    }
+
+    async function loadMotivasi() {
+      const { data } = await supabase.from("motivations").select("*").order("created_at", { ascending: false });
+      const list = document.getElementById("motivasiList");
+      list.innerHTML = "";
+      data.forEach(m => {
+        const li = document.createElement("li");
+        li.textContent = m.text;
+        li.onclick = async () => {
+          if (confirm("Hapus kalimat ini?")) {
+            await supabase.from("motivations").delete().eq("id", m.id);
+            loadMotivasi();
+          }
+        };
+        list.appendChild(li);
+      });
+    }
+
+    async function simpanStiker() {
+      const ukuran = document.getElementById("ukuranStiker").value;
+      const tampil = document.getElementById("opsiTampil").value;
+      await supabase.from("settings").upsert([
+        { key: "sticker_size", value: ukuran },
+        { key: "sticker_mode", value: tampil }
+      ], { onConflict: "key" });
+      alert("Pengaturan disimpan.");
+    }
+
+    async function loadStikerSettings() {
+      const { data } = await supabase.from("settings").select("*");
+      data.forEach(row => {
+        if (row.key === "sticker_size") document.getElementById("ukuranStiker").value = row.value;
+        if (row.key === "sticker_mode") document.getElementById("opsiTampil").value = row.value;
+      });
+    }
+
+    loadUsers();
+    loadMotivasi();
+    loadStikerSettings();
+  </script>
+</body>
+</html>
